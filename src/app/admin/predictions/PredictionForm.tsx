@@ -77,6 +77,14 @@ export default function PredictionForm({ packages }: { packages: any[] }) {
         <button type="submit" disabled={loading} className="bg-black text-white px-6 py-2 rounded font-bold hover:bg-gray-800 disabled:opacity-50">
           {loading ? 'Adding...' : 'Add Prediction'}
         </button>
+        {/* Interactive Glow Card */}
+<div className="group relative rounded-2xl border border-slate-800 bg-slate-900/80 p-6 backdrop-blur-xl transition-all hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+  {/* Card Accent Highlight */}
+  <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+  
+  <h3 className="text-xl font-bold text-white">VIP Betting Package</h3>
+  <p className="mt-2 text-slate-400">High-confidence predictions with high win-rate history.</p>
+</div>
       </div>
     </form>
   );
