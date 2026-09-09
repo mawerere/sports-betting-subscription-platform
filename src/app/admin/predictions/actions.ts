@@ -7,7 +7,7 @@ import { getSession } from '@/lib/session';
 
 export async function syncPredictions(packageIds: string[]) {
   const session = await getSession();
-  
+
   if (!session || (session.user.role !== 'SUPERADMIN' && session.user.role !== 'ADMIN')) {
     throw new Error('Unauthorized');
   }
@@ -24,6 +24,10 @@ export async function syncPredictions(packageIds: string[]) {
     for (const match of matches) {
       const isFree = Math.random() > 0.7;
       const packageId = isFree ? null : packageIds[Math.floor(Math.random() * packageIds.length)];
+      const externalFixtureId = match.externalFixtureId?.toString().trim() || null;
+      
+      // Auto-set isLive to true if an external fixture ID exists
+      const isLive = match.isLive ?? Boolean(externalFixtureId);
 
       await db.insert(predictions).values({
         id: uuidv4(),
@@ -34,6 +38,9 @@ export async function syncPredictions(packageIds: string[]) {
         chances: match.chances,
         matchDate: new Date(match.matchDate),
         packageId,
+        isFree,
+        isLive,
+        externalFixtureId,
         status: match.status,
       });
     }
@@ -50,12 +57,20 @@ export async function addPrediction(data: {
   chances: number;
   matchDate: Date;
   packageId: string | null;
+  isFree?: boolean;
+  isLive?: boolean;
+  externalFixtureId?: string | null;
 }) {
   const session = await getSession();
-  
+
   if (!session || (session.user.role !== 'SUPERADMIN' && session.user.role !== 'ADMIN')) {
     throw new Error('Unauthorized');
   }
+
+  const externalFixtureId = data.externalFixtureId?.trim() || null;
+  
+  // Automatically evaluate isLive = true if externalFixtureId is provided
+  const isLive = data.isLive ?? Boolean(externalFixtureId);
 
   await db.insert(predictions).values({
     id: uuidv4(),
@@ -66,6 +81,9 @@ export async function addPrediction(data: {
     chances: data.chances.toString(),
     matchDate: data.matchDate,
     packageId: data.packageId,
+    isFree: data.isFree ?? (data.packageId === null),
+    isLive,
+    externalFixtureId,
   });
 
   return { success: true };

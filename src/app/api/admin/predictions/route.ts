@@ -59,7 +59,21 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { homeTeam, awayTeam, league, predictionText, chances, packageId, matchDate, status } = body;
+    const { 
+      homeTeam, 
+      awayTeam, 
+      league, 
+      predictionText, 
+      chances, 
+      packageId, 
+      matchDate, 
+      status, 
+      isFree, 
+      isLive, 
+      htScore, 
+      ftScore, 
+      minute 
+    } = body;
 
     if (!homeTeam || !awayTeam || !predictionText) {
       return NextResponse.json({ error: 'Home team, away team, and prediction text are required.' }, { status: 400 });
@@ -74,6 +88,11 @@ export async function POST(req: Request) {
         predictionText,
         chances: chances ? String(chances) : '1.50',
         packageId: packageId || null,
+        isFree: Boolean(isFree),
+        isLive: Boolean(isLive),
+        htScore: htScore || '0 - 0',
+        ftScore: ftScore || '0 - 0',
+        minute: minute || "0'",
         matchDate: matchDate ? new Date(matchDate) : new Date(),
         status: status || 'PENDING',
         createdAt: new Date(),
@@ -82,6 +101,8 @@ export async function POST(req: Request) {
 
     // Revalidate all variants of admin & dashboard routes
     revalidatePath('/dashboard');
+    revalidatePath('/predictions');
+    revalidatePath('/live');
     revalidatePath('/admin', 'layout');
     revalidatePath('/admin/predictions', 'page');
     revalidatePath('/admin/predictions', 'layout');
@@ -93,33 +114,52 @@ export async function POST(req: Request) {
   }
 }
 
-// 2. UPDATE OUTCOME (WON / LOST / PENDING)
+// 2. UPDATE PREDICTION & LIVE STATUS/SCORES
 export async function PATCH(req: Request) {
   const admin = await verifyAdmin(req);
   if (!admin) return NextResponse.json({ error: 'Unauthorized access' }, { status: 401 });
 
   try {
-    const { id, status } = await req.json();
+    const body = await req.json();
+    const { id, status, isLive, isFree, htScore, ftScore, minute, homeTeam, awayTeam, league, predictionText, chances, packageId, matchDate } = body;
 
-    if (!id || !status) {
-      return NextResponse.json({ error: 'Prediction ID and status are required' }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ error: 'Prediction ID is required' }, { status: 400 });
     }
+
+    // Build dynamic update payload containing only sent properties
+    const updateData: Record<string, any> = {};
+    if (status !== undefined) updateData.status = status;
+    if (isLive !== undefined) updateData.isLive = Boolean(isLive);
+    if (isFree !== undefined) updateData.isFree = Boolean(isFree);
+    if (htScore !== undefined) updateData.htScore = htScore;
+    if (ftScore !== undefined) updateData.ftScore = ftScore;
+    if (minute !== undefined) updateData.minute = minute;
+    if (homeTeam !== undefined) updateData.homeTeam = homeTeam;
+    if (awayTeam !== undefined) updateData.awayTeam = awayTeam;
+    if (league !== undefined) updateData.league = league;
+    if (predictionText !== undefined) updateData.predictionText = predictionText;
+    if (chances !== undefined) updateData.chances = String(chances);
+    if (packageId !== undefined) updateData.packageId = packageId || null;
+    if (matchDate !== undefined) updateData.matchDate = new Date(matchDate);
 
     await db
       .update(predictions)
-      .set({ status })
+      .set(updateData)
       .where(eq(predictions.id, id));
 
-    // Force Next.js App Router cache invalidate
+    // Force Next.js App Router cache invalidate across user views
     revalidatePath('/dashboard');
+    revalidatePath('/predictions');
+    revalidatePath('/live');
     revalidatePath('/admin', 'layout');
     revalidatePath('/admin/predictions', 'page');
     revalidatePath('/admin/predictions', 'layout');
 
-    return NextResponse.json({ message: 'Prediction status updated successfully' });
+    return NextResponse.json({ message: 'Prediction updated successfully' });
   } catch (error) {
-    console.error('Error updating status:', error);
-    return NextResponse.json({ error: 'Failed to update status' }, { status: 500 });
+    console.error('Error updating prediction:', error);
+    return NextResponse.json({ error: 'Failed to update prediction' }, { status: 500 });
   }
 }
 
@@ -138,6 +178,8 @@ export async function DELETE(req: Request) {
 
     // Force Next.js App Router cache invalidate
     revalidatePath('/dashboard');
+    revalidatePath('/predictions');
+    revalidatePath('/live');
     revalidatePath('/admin', 'layout');
     revalidatePath('/admin/predictions', 'page');
     revalidatePath('/admin/predictions', 'layout');

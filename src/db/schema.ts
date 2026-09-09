@@ -38,6 +38,7 @@ export const users = pgTable(
     role: userRoleEnum('role').default('USER').notNull(),
     subscriptionStatus: subStatusEnum('subscription_status').default('INACTIVE').notNull(),
     accountStatus: userAccountStatusEnum('account_status').default('ACTIVE').notNull(),
+    isVerified: boolean('is_verified').default(false).notNull(),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'date' })
       .defaultNow()
@@ -47,6 +48,26 @@ export const users = pgTable(
   (table) => [
     index('users_email_idx').on(table.email),
     index('users_phone_idx').on(table.phone),
+  ]
+);
+
+// Verification Tokens Table
+export const verificationTokens = pgTable(
+  'verification_tokens',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    code: text('code').notNull(),
+    expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('verification_tokens_user_idx').on(table.userId),
+    index('verification_tokens_code_idx').on(table.code),
   ]
 );
 
@@ -95,12 +116,20 @@ export const predictions = pgTable(
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
     packageId: text('package_id').references(() => packages.id, { onDelete: 'set null' }),
+    externalFixtureId: text('external_fixture_id'), // Mapping key for external score APIs
     isFree: boolean('is_free').default(false).notNull(),
+    isLive: boolean('is_live').default(false).notNull(),
     league: text('league'),
     homeTeam: text('home_team').notNull(),
     awayTeam: text('away_team').notNull(),
     predictionText: text('prediction').notNull(),
     chances: numeric('chances', { precision: 5, scale: 2 }).notNull(),
+    
+    // Live scores & match minute tracking
+    htScore: text('ht_score').default('0 - 0'),
+    ftScore: text('ft_score').default('0 - 0'),
+    minute: text('minute').default("0'"),
+
     matchDate: timestamp('match_date', { mode: 'date' }).notNull(),
     status: predStatusEnum('status').default('PENDING').notNull(),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
@@ -114,6 +143,8 @@ export const predictions = pgTable(
     index('predictions_match_date_idx').on(table.matchDate),
     index('predictions_status_idx').on(table.status),
     index('predictions_is_free_idx').on(table.isFree),
+    index('predictions_is_live_idx').on(table.isLive),
+    index('predictions_ext_fixture_idx').on(table.externalFixtureId),
   ]
 );
 
@@ -206,6 +237,14 @@ export const usersRelations = relations(users, ({ many }) => ({
   subscriptions: many(subscriptions),
   payments: many(payments),
   ledgerEntries: many(ledger),
+  verificationTokens: many(verificationTokens),
+}));
+
+export const verificationTokensRelations = relations(verificationTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [verificationTokens.userId],
+    references: [users.id],
+  }),
 }));
 
 export const packagesRelations = relations(packages, ({ many }) => ({
@@ -258,6 +297,9 @@ export const ledgerRelations = relations(ledger, ({ one }) => ({
 // Infer Types
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+
+export type VerificationToken = typeof verificationTokens.$inferSelect;
+export type NewVerificationToken = typeof verificationTokens.$inferInsert;
 
 export type Package = typeof packages.$inferSelect;
 export type NewPackage = typeof packages.$inferInsert;
