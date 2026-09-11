@@ -26,8 +26,7 @@ export default function LivePredictionsWidget() {
   const [stats, setStats] = useState<Stats | null>(null);
 
   const fetchData = async () => {
-    // Avoid running fetches if tab is backgrounded to conserve Vercel CPU limits
-    if (document.hidden) return;
+    if (typeof document !== 'undefined' && document.hidden) return;
 
     try {
       const [resMatches, resStats] = await Promise.all([
@@ -51,20 +50,22 @@ export default function LivePredictionsWidget() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 60000); // Polls every 60s
+    const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* WHATSAPP CHANNEL BANNER */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 rounded-xl border border-emerald-500/30 bg-emerald-950/40 p-4 text-white shadow-lg">
+      <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 rounded-xl border border-green-500 bg-slate-900 p-4 text-white shadow-xl relative z-10">
         <div className="flex items-center gap-3 text-center md:text-left">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-lg">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500 text-slate-950 font-bold text-lg">
             💬
           </div>
           <div>
-            <h3 className="text-sm md:text-base font-bold">Join Our Official WhatsApp Channel</h3>
+            <h3 className="text-sm md:text-base font-bold text-white">
+              Join Our Official WhatsApp Channel
+            </h3>
             <p className="text-xs text-slate-300">
               Get instant alerts for live predictions, free daily tips, and VIP announcements.
             </p>
@@ -74,7 +75,7 @@ export default function LivePredictionsWidget() {
           href="https://whatsapp.com/channel/0029VbBUJIG0lwgqvIFL1I3r"
           target="_blank"
           rel="noopener noreferrer"
-          className="whitespace-nowrap rounded-lg bg-emerald-500 px-4 py-2 text-xs font-extrabold text-slate-950 transition hover:bg-emerald-400 shadow-md"
+          className="whitespace-nowrap rounded-lg bg-green-500 px-5 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-green-400 transition-colors shadow-md border border-green-400"
         >
           Join Channel →
         </a>
