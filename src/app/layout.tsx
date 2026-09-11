@@ -2,6 +2,23 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import Link from 'next/link';
+
+export function WhatsAppBanner() {
+  return (
+    <div className="bg-emerald-600 px-4 py-2 text-center text-xs md:text-sm font-semibold text-white flex items-center justify-center gap-2 shadow-md">
+      <span>Get instant live tips and VIP updates directly on WhatsApp!</span>
+      <Link
+        href="https://whatsapp.com/channel/0029VbBUJIG0lwgqvIFL1I3r"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline font-bold hover:text-emerald-200 transition"
+      >
+        Join Channel →
+      </Link>
+    </div>
+  );
+}
 
 export const metadata: Metadata = {
   title: "Team GOLO golo - Winning Starts Here",
