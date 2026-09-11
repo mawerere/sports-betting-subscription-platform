@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import LivePredictionsWidget from '@/components/LivePredictionsWidget';
 
 export default function Home() {
   return (
@@ -11,14 +12,27 @@ export default function Home() {
         <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto text-gray-300">
           Join the ultimate sports prediction tips subscription platform. Get daily expert predictions and maximize your winnings with Team GOLO golo.
         </p>
-        <div className="flex gap-4 justify-center">
+        <div className="flex flex-wrap gap-4 justify-center items-center">
           <Link href="/register" className="bg-yellow-500 text-black px-8 py-3 rounded-full font-bold text-lg hover:bg-yellow-400 transition-colors">
             Get Started
           </Link>
           <Link href="/free-tips" className="bg-transparent border-2 border-yellow-500 text-yellow-500 px-8 py-3 rounded-full font-bold text-lg hover:bg-yellow-500 hover:text-black transition-colors">
             View Free Tips
           </Link>
+          <a
+            href="https://whatsapp.com/channel/0029VbBUJIG0lwgqvIFL1I3r"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-green-500 text-black px-8 py-3 rounded-full font-bold text-lg hover:bg-green-400 transition-colors flex items-center gap-2"
+          >
+            💬 Join WhatsApp
+          </a>
         </div>
+      </section>
+
+      {/* Live Predictions & WhatsApp Widget Section */}
+      <section className="w-full max-w-5xl mx-auto px-4 py-12">
+        <LivePredictionsWidget />
       </section>
 
       {/* Features */}
