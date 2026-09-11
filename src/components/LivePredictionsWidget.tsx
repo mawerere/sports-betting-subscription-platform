@@ -41,7 +41,7 @@ export default function LivePredictionsWidget() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 15000); // Auto refresh every 15s
+    const interval = setInterval(fetchData, 60000); // Auto refresh every 60s
     return () => clearInterval(interval);
   }, []);
 

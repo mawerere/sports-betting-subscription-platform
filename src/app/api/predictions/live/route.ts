@@ -15,6 +15,6 @@ export async function GET() {
     return NextResponse.json(liveList);
   } catch (error) {
     console.error('Error fetching live predictions:', error);
-    return NextResponse.json({ error: 'Failed to fetch live matches' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch live matches' }, { status: 1500 });
   }
 }
