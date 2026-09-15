@@ -1,33 +1,26 @@
-import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 
-const globalForDb = globalThis as typeof globalThis & {
-  __arenaNextJsPostgresqlPool?: Pool;
-};
+const connectionString = process.env.DATABASE_URL;
 
-// Lazy creation of pool using the current process.env value
-function getPool(): Pool {
-  if (globalForDb.__arenaNextJsPostgresqlPool) {
-    return globalForDb.__arenaNextJsPostgresqlPool;
-  }
-
-  const connectionString = process.env.DATABASE_URL;
-
-  if (!connectionString && typeof window === "undefined") {
-    console.warn("⚠️ Warning: DATABASE_URL is not defined in process.env");
-  }
-
-  const poolInstance = new Pool({
-    connectionString: connectionString || undefined,
-  });
-
-  if (process.env.NODE_ENV !== "production") {
-    globalForDb.__arenaNextJsPostgresqlPool = poolInstance;
-  }
-
-  return poolInstance;
+if (!connectionString && typeof window === "undefined") {
+  console.warn("⚠️ Warning: DATABASE_URL is not defined in process.env");
 }
 
-export const pool = getPool();
+const globalForDb = globalThis as unknown as {
+  pool: Pool | undefined;
+};
+
+const pool = globalForDb.pool ?? new Pool({
+  connectionString,
+  max: 5,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 10_000,
+});
+
+if (process.env.NODE_ENV !== "production") {
+  globalForDb.pool = pool;
+}
+
 export const db = drizzle(pool, { schema });

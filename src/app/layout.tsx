@@ -48,6 +48,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <a href="https://t.me/omusajjawaodd256" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white font-bold transition-colors">
               <span className="text-yellow-500">✈️</span> Telegram
             </a>
+            <span className="text-gray-600">|</span>
+            <a href="https://youtube.com/@omusajjawaodd?si=3xOLxFcY2gCtbyAh" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white font-bold transition-colors">
+              <span className="text-yellow-500">▶️</span> YouTube
+            </a>
           </div>
           <div className="flex justify-center gap-4 text-sm text-gray-400">
             <a href="/about" className="hover:text-yellow-500 transition-colors">About</a>
